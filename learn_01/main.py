@@ -6,18 +6,19 @@ from matplotlib.animation import FuncAnimation
 
 
 class Epicycle:
-    """一个用于创建和动画演示 epicycle（圆内旋轮线）的类。
+    """A class for creating and animating epicycles (circular epitrochoids).
 
-    Epicycle（圆内旋轮线）是由多个圆组成的数学曲线，其中每个圆的中心
-    位于前一个圆的圆周上。该类提供了创建、绘制和动画化这些几何图形的功能。
+    An epicycle is a mathematical curve composed of multiple circles where each 
+    circle's center lies on the circumference of the previous circle. This class
+    provides functionality to create, draw, and animate these geometric structures.
 
-    主要功能包括：
-    - 生成圆的坐标点
-    - 绘制静态圆形和圆形链
-    - 创建单个圆和多个圆的动画效果
-    - 可视化 epicycle 的运动轨迹
+    Main features:
+    - Generate coordinate points for circles
+    - Draw static circles and circular chains
+    - Create animations for single and multiple circles
+    - Visualize epicycle motion trajectories
 
-    示例：
+    Example:
         >>> epicycle = Epicycle()
         >>> epicycle.draw_circle(radius=2.0, theta=0.5)
         >>> epicycle.animate_circles([1, 2, 3], [0, 1, 2], [1, 0.5, 0.25])
@@ -29,21 +30,23 @@ class Epicycle:
         radius: float = 1.0,
         n_points: int = 100,
     ) -> tuple[np.ndarray, np.ndarray]:
-        """生成圆形上的一系列坐标点。
+        """Generate coordinate points on a circle.
 
-        该方法计算并返回指定圆心、半径和点数的圆形轨迹上的坐标点。
+        This method calculates and returns coordinate points on the circumference 
+        of a circle with specified center, radius, and number of points.
 
         Args:
-            center: 圆心坐标，默认为原点 (0+0j)
-            radius: 圆的半径，默认为 1.0
-            n_points: 圆形上点的数量，默认为 100。点数越多，圆形越平滑
+            center: Center coordinates of the circle, default is origin (0+0j)
+            radius: Radius of the circle, default is 1.0
+            n_points: Number of points on the circle, default is 100. 
+                     More points result in a smoother circle
 
         Returns:
-            tuple[np.ndarray, np.ndarray]: 包含 x 坐标和 y 坐标的元组
-                - 第一个数组包含 x 坐标
-                - 第二个数组包含 y 坐标
+            tuple[np.ndarray, np.ndarray]: A tuple containing x and y coordinates
+                - First array contains x coordinates
+                - Second array contains y coordinates
 
-        示例：
+        Example:
             >>> x, y = Epicycle.get_circle_points(center=1+1j, radius=2.0, n_points=50)
             >>> len(x)
             50
@@ -62,21 +65,22 @@ class Epicycle:
         radius: float = 1.0,
         theta: float = 0.0,
     ) -> tuple[np.ndarray, np.ndarray]:
-        """生成圆形上箭头（半径线）的坐标点。
+        """Generate coordinate points for a circle arrow (radius line).
 
-        该方法计算并返回从圆心到圆周上指定角度位置的箭头线段坐标点。
+        This method calculates and returns coordinate points for a line segment 
+        from the circle center to a specified angle position on the circumference.
 
         Args:
-            center: 圆心坐标，默认为原点 (0+0j)
-            radius: 圆的半径，默认为 1.0
-            theta: 角度（弧度），默认为 0.0，表示从正x轴开始的角度
+            center: Center coordinates of the circle, default is origin (0+0j)
+            radius: Radius of the circle, default is 1.0
+            theta: Angle in radians, default is 0.0, representing angle from positive x-axis
 
         Returns:
-            tuple[np.ndarray, np.ndarray]: 包含箭头线段起点和终点的坐标
-                - 第一个数组包含两个x坐标值：[起点x, 终点x]
-                - 第二个数组包含两个y坐标值：[起点y, 终点y]
+            tuple[np.ndarray, np.ndarray]: A tuple containing start and end points of the arrow line
+                - First array contains two x coordinate values: [start_x, end_x]
+                - Second array contains two y coordinate values: [start_y, end_y]
 
-        示例：
+        Example:
             >>> x, y = Epicycle.get_arrow_points(center=0+0j, radius=2.0, theta=np.pi/2)
             >>> x
             array([0., 0.])
@@ -96,24 +100,25 @@ class Epicycle:
         theta: float = 0.0,
         figsize: tuple[float, float] = (6, 6),
     ):
-        """绘制单个圆形的静态图形。
+        """Draw a static plot of a single circle.
 
-        该方法创建一个 matplotlib 图形，显示指定圆心、半径和角度的圆形，
-        包括圆形轮廓线和从圆心到圆周上指定角度位置的半径线（箭头）。
+        This method creates a matplotlib figure displaying a circle with specified 
+        center, radius, and angle, including the circle outline and a radius line 
+        (arrow) from center to the specified angle position.
 
         Args:
-            center: 圆心坐标，默认为原点 (0+0j)
-            radius: 圆的半径，默认为 1.0
-            theta: 角度（弧度），默认为 0.0，指定半径线的朝向
-            figsize: 图形大小，默认为 (6, 6)，单位为英寸
+            center: Center coordinates of the circle, default is origin (0+0j)
+            radius: Radius of the circle, default is 1.0
+            theta: Angle in radians, default is 0.0, specifies the radius line direction
+            figsize: Figure size, default is (6, 6), in inches
 
         Returns:
-            None: 该方法直接显示图形，不返回值
+            None: This method displays the figure directly and returns no value
 
-        示例：
+        Example:
             >>> epicycle = Epicycle()
             >>> epicycle.draw_circle(center=1+1j, radius=2.0, theta=np.pi/4)
-            # 显示一个圆心在(1,1)，半径为2，角度为45度的圆形
+            # Displays a circle with center at (1,1), radius 2, angle 45 degrees
         """
         fig, ax = plt.subplots(figsize=figsize)
         ax.set_aspect('equal')
@@ -129,27 +134,30 @@ class Epicycle:
         theta: list[float],
         orig: complex = 0 + 0j,
     ):
-        """绘制多个连接的圆形（epicycle 结构）的静态图形。
+        """Draw a static plot of multiple connected circles (epicycle structure).
 
-        该方法创建一个 matplotlib 图形，显示由多个圆形组成的 epicycle 结构。
-        每个圆的中心都位于前一个圆的圆周上，形成链状结构。
+        This method creates a matplotlib figure displaying an epicycle structure 
+        composed of multiple circles. Each circle's center lies on the circumference 
+        of the previous circle, forming a chain-like structure.
 
         Args:
-            radius: 每个圆的半径列表，长度应该与 theta 列表相同
-            theta: 每个圆的初始角度列表（弧度），长度应该与 radius 列表相同
-            orig: 起始原点坐标，默认为 (0+0j)。第一个圆的圆心位置
+            radius: List of radii for each circle, should be same length as theta list
+            theta: List of initial angles for each circle (in radians), 
+                  should be same length as radius list
+            orig: Starting origin coordinates, default is (0+0j). 
+                 Center position of the first circle
 
         Returns:
-            None: 该方法直接显示图形，不返回值
+            None: This method displays the figure directly and returns no value
 
-        示例：
+        Example:
             >>> epicycle = Epicycle()
             >>> epicycle.draw_circles(
             ...     radius=[3.0, 2.0, 1.0],
             ...     theta=[0.0, np.pi/2, np.pi],
             ...     orig=0+0j
             ... )
-            # 绘制三个连接的圆形
+            # Draws three connected circles
         """
         fig, ax = plt.subplots(figsize=(12, 12))
         ax.set_aspect('equal')
@@ -169,30 +177,31 @@ class Epicycle:
         speed: float,
         frames: int = 360,
     ):
-        """创建单个圆形旋转的动画。
+        """Create an animation of a single circle rotating.
 
-        该方法创建一个动画，显示圆形围绕其中心旋转，同时记录并显示
-        圆周上一点的运动轨迹（红色轨迹线）。
+        This method creates an animation showing a circle rotating around its center,
+        while recording and displaying the motion trajectory of a point on the 
+        circumference (red trajectory line).
 
         Args:
-            center: 圆心坐标，不能为默认值
-            radius: 圆的半径，不能为默认值
-            speed: 动画速度控制，数值越小动画越快
-            frames: 动画帧数，默认为 360帧（一圈）
+            center: Center coordinates of the circle, cannot be default value
+            radius: Radius of the circle, cannot be default value
+            speed: Animation speed control, smaller values make animation faster
+            frames: Number of animation frames, default is 360 (one full rotation)
 
         Returns:
-            None: 该方法直接显示动画，不返回值
+            None: This method displays the animation directly and returns no value
 
-        动画特性：
-            - 圆形轮廓显示为灰色
-            - 半径线显示为钢蓝色
-            - 轨迹线显示为红色
-            - 动画按顺时针方向旋转
+        Animation Features:
+            - Circle outline displayed in gray
+            - Radius line displayed in steel blue
+            - Trajectory line displayed in red
+            - Animation rotates in clockwise direction
 
-        示例：
+        Example:
             >>> epicycle = Epicycle()
             >>> epicycle.animate_circle(center=0+0j, radius=2.0, speed=0.1, frames=720)
-            # 创建半径为2的圆的两圈旋转动画
+            # Creates a circle with radius 2 rotating two full cycles
         """
         fig, ax = plt.subplots(figsize=(6, 6))
         ax.set_aspect('equal')
@@ -242,34 +251,39 @@ class Epicycle:
         orig: complex = 0 + 0j,
         frames: int = 360,
     ):
-        """创建多个连接圆形（epicycle）的旋转动画。
+        """Create an animation of multiple connected circles (epicycle).
 
-        该方法创建一个复杂的动画，显示多个圆形组成的 epicycle 结构。
-        每个圆都围绕其中心旋转，并且每个圆的中心都位于前一个圆的圆周上，
-        形成链状运动结构。同时记录并显示最终端点的运动轨迹。
+        This method creates a complex animation displaying an epicycle structure 
+        composed of multiple circles. Each circle rotates around its center, and 
+        each circle's center lies on the circumference of the previous circle,
+        forming a chain-like motion structure. It also records and displays the 
+        motion trajectory of the final endpoint.
 
         Args:
-            radius: 每个圆的半径列表，长度应该与 theta 和 speed 列表相同
-            theta: 每个圆的初始角度列表（弧度），长度应该与 radius 和 speed 列表相同
-            speed: 每个圆的旋转速度列表（弧度/帧），长度应该与 radius 和 theta 列表相同
-            orig: 起始原点坐标，默认为 (0+0j)。第一个圆的圆心位置
-            frames: 动画总帧数，默认为 360帧
+            radius: List of radii for each circle, should be same length as theta and speed lists
+            theta: List of initial angles for each circle (in radians), 
+                  should be same length as radius and speed lists
+            speed: List of rotation speeds for each circle (radians/frame), 
+                  should be same length as radius and theta lists
+            orig: Starting origin coordinates, default is (0+0j). 
+                 Center position of the first circle
+            frames: Total number of animation frames, default is 360
 
         Returns:
-            None: 该方法直接显示动画，不返回值
+            None: This method displays the animation directly and returns no value
 
-        动画特性：
-            - 圆形轮廓显示为灰色细线
-            - 半径线显示为钢蓝色
-            - 最终端点轨迹显示为红色
-            - 当轨迹接近起始点时动画自动停止（检测闭环）
-            - 所有圆同时按各自的速度旋转
+        Animation Features:
+            - Circle outlines displayed as gray thin lines
+            - Radius lines displayed in steel blue
+            - Final endpoint trajectory displayed in red
+            - Animation automatically stops when trajectory approaches starting point (closed loop detection)
+            - All circles rotate simultaneously at their respective speeds
 
-        性能说明：
-            - 该方法会打印调试信息显示输入参数
-            - 动画会在检测到闭环时自动停止以避免无限循环
+        Performance Notes:
+            - This method prints debug information showing input parameters
+            - Animation automatically stops when closed loop is detected to avoid infinite loops
 
-        示例：
+        Example:
             >>> epicycle = Epicycle()
             >>> epicycle.animate_circles(
             ...     radius=[3.0, 2.0, 1.0],
@@ -278,7 +292,7 @@ class Epicycle:
             ...     orig=0+0j,
             ...     frames=1000
             ... )
-            # 创建三个不同速度和半径的连接圆形的动画
+            # Creates an animation of three connected circles with different speeds and radii
         """
         print(f'{radius=}')
         print(f'{theta=}')
