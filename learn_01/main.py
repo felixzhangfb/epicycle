@@ -3,6 +3,7 @@ from random import randint
 import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib.animation import FuncAnimation
+from numpy.typing import NDArray
 
 
 class Epicycle:
@@ -29,7 +30,7 @@ class Epicycle:
         center: complex = 0 + 0j,
         radius: float = 1.0,
         n_points: int = 100,
-    ) -> tuple[np.ndarray, np.ndarray]:
+    ) -> tuple[NDArray, NDArray]:
         """Generate coordinate points on a circle.
 
         This method calculates and returns coordinate points on the circumference 
@@ -42,7 +43,7 @@ class Epicycle:
                      More points result in a smoother circle
 
         Returns:
-            tuple[np.ndarray, np.ndarray]: A tuple containing x and y coordinates
+            tuple[NDArray, NDArray]: A tuple containing x and y coordinates
                 - First array contains x coordinates
                 - Second array contains y coordinates
 
@@ -64,7 +65,7 @@ class Epicycle:
         center: complex = 0 + 0j,
         radius: float = 1.0,
         theta: float = 0.0,
-    ) -> tuple[np.ndarray, np.ndarray]:
+    ) -> tuple[NDArray, NDArray]:
         """Generate coordinate points for a circle arrow (radius line).
 
         This method calculates and returns coordinate points for a line segment 
@@ -76,7 +77,7 @@ class Epicycle:
             theta: Angle in radians, default is 0.0, representing angle from positive x-axis
 
         Returns:
-            tuple[np.ndarray, np.ndarray]: A tuple containing start and end points of the arrow line
+            tuple[NDArray, NDArray]: A tuple containing start and end points of the arrow line
                 - First array contains two x coordinate values: [start_x, end_x]
                 - Second array contains two y coordinate values: [start_y, end_y]
 
@@ -353,15 +354,35 @@ class Epicycle:
         # with open('animation.html', 'w') as f:
         #     f.write(ani.to_jshtml())
 
+    @classmethod
+    def create_sample_path_points(cls, n_points: int = 20) -> NDArray[np.complex128]:
+        z = np.random.randint(-10, 10, n_points) + 1j * np.random.randint(-10, 10, n_points)
+        center = z.mean()
+        z_shifted = z - center
+        angles = np.angle(z_shifted)
+        order = np.argsort(angles)
+        z_order = z[order]
+        z_order = np.r_[z_order, z_order[0]]
+        return z_order
+    
+    @classmethod
+    def plot_sample_path_points(cls, n_points: int = 20):
+        points = cls.create_sample_path_points(n_points)
+        fig, ax = plt.subplots(figsize=(6, 6))
+        ax.set_aspect('equal')
+        ax.set_axis_off()
+        ax.plot(points.real, points.imag, marker='o', color='steelblue', lw=1)
+        plt.show()
 
 if __name__ == '__main__':
     epicycle = Epicycle()
-    K = 10
-    epicycle.animate_circles(
-        # radius=sorted([randint(1, 10) for _ in range(K)], reverse=True),
-        radius=[randint(1, 10) for _ in range(K)],
-        theta=[randint(1, 10) / 10 for _ in range(K)],
-        speed=[randint(-10, 10) / 10 for _ in range(K)],
-        orig=0 + 0j,
-        frames=10000,
-    )
+    # K = 10
+    # epicycle.animate_circles(
+    #     # radius=sorted([randint(1, 10) for _ in range(K)], reverse=True),
+    #     radius=[randint(1, 10) for _ in range(K)],
+    #     theta=[randint(1, 10) / 10 for _ in range(K)],
+    #     speed=[randint(-10, 10) / 10 for _ in range(K)],
+    #     orig=0 + 0j,
+    #     frames=10000,
+    # )
+    epicycle.plot_sample_path_points(n_points=30)
