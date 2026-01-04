@@ -120,10 +120,10 @@ class Epicycle:
             # Displays a circle with center at (1,1), radius 2, angle 45 degrees
         """
         fig, ax = plt.subplots(figsize=figsize)
-        ax.set_aspect("equal")
+        ax.set_aspect('equal')
         ax.set_axis_off()
-        ax.plot(*cls.get_circle_points(center, radius), color="#cccccc80", lw=5)
-        ax.plot(*cls.get_arrow_points(center, radius, theta), color="steelblue", lw=2)
+        ax.plot(*cls.get_circle_points(center, radius), color='#cccccc80', lw=5)
+        ax.plot(*cls.get_arrow_points(center, radius, theta), color='tab:blue', lw=2)
         fig.show()
 
     @classmethod
@@ -159,12 +159,12 @@ class Epicycle:
             # Draws three connected circles
         """
         fig, ax = plt.subplots(figsize=(12, 12))
-        ax.set_aspect("equal")
+        ax.set_aspect('equal')
         ax.set_axis_off()
         center = orig
         for r, t in zip(radius, theta, strict=True):
-            ax.plot(*cls.get_circle_points(center, r), color="#cccccc80", lw=5)
-            ax.plot(*cls.get_arrow_points(center, r, t), color="steelblue", lw=2)
+            ax.plot(*cls.get_circle_points(center, r), color='#cccccc80', lw=5)
+            ax.plot(*cls.get_arrow_points(center, r, t), color='tab:blue', lw=2)
             center += r * np.exp(1j * t)
         fig.show()
 
@@ -203,13 +203,13 @@ class Epicycle:
             # Creates a circle with radius 2 rotating two full cycles
         """
         fig, ax = plt.subplots(figsize=(6, 6))
-        ax.set_aspect("equal")
+        ax.set_aspect('equal')
         # ax.set_axis_off()
         ax.set_xlim(-radius * 1.1, radius * 1.1)
         ax.set_ylim(-radius * 1.1, radius * 1.1)
-        (circle,) = ax.plot([], [], color="gray", lw=10, alpha=0.5)
-        (line,) = ax.plot([], [], color="steelblue", lw=4)
-        (trace,) = ax.plot([], [], color="red", lw=2)
+        (circle,) = ax.plot([], [], color='tab:gray', lw=10, alpha=0.5)
+        (line,) = ax.plot([], [], color='tab:blue', lw=4)
+        (trace,) = ax.plot([], [], color='red', lw=2)
         trace_points = []
 
         def init_func():
@@ -223,9 +223,7 @@ class Epicycle:
             theta = -2 * np.pi / frames * frame
             line.set_data(*cls.get_arrow_points(center, radius, theta))
             trace_points.append(center + radius * np.exp(1j * theta))
-            trace.set_data(
-                [p.real for p in trace_points], [p.imag for p in trace_points]
-            )
+            trace.set_data([p.real for p in trace_points], [p.imag for p in trace_points])
             return circle, line, trace
 
         _ = FuncAnimation(
@@ -270,6 +268,7 @@ class Epicycle:
             orig: Starting origin coordinates, default is (0+0j).
                  Center position of the first circle
             frames: Total number of animation frames, default is 360
+            interval: Time interval between frames in seconds, default is 0.1
 
         Returns:
             None: This method displays the animation directly and returns no value
@@ -294,13 +293,10 @@ class Epicycle:
             ...     orig=0+0j,
             ...     frames=1000
             ... )
-            # Creates an animation of three connected circles with different speeds and radii
+            # Creates an animation of three connected circles with different speeds and radiuses
         """
-        print(f"{radius=}")
-        print(f"{theta=}")
-        print(f"{speed=}")
         fig, ax = plt.subplots(figsize=(6, 6))
-        ax.set_aspect("equal")
+        ax.set_aspect('equal')
         ax.set_axis_off()
         xlim = sum(radius) * 1.1
         ylim = sum(radius) * 1.1
@@ -309,22 +305,20 @@ class Epicycle:
         circles = []
         lines = []
         trace_points = []
-        (trace,) = ax.plot([], [], color="tab:red", lw=1)
+        (trace,) = ax.plot([], [], color='tab:red', lw=1)
 
         def init_func():
             center = orig
             for r, t in zip(radius, theta, strict=True):
-                (circle,) = ax.plot([], [], color="gray", ls="-", lw=1, alpha=0.5)
-                (line,) = ax.plot([], [], color="steelblue", lw=1)
+                (circle,) = ax.plot([], [], color='tab:gray', ls='-', lw=1, alpha=0.5)
+                (line,) = ax.plot([], [], color='tab:blue', lw=1)
                 circles.append(circle)
                 lines.append(line)
                 # use the circle's own initial angle `t` (do not accumulate)
                 center += r * np.exp(1j * t)
             trace_points.clear()
             trace_points.append(center)
-            trace.set_data(
-                [p.real for p in trace_points], [p.imag for p in trace_points]
-            )
+            trace.set_data([p.real for p in trace_points], [p.imag for p in trace_points])
             return circles + lines + [trace]
 
         def update(frame):
@@ -360,10 +354,8 @@ class Epicycle:
         #     f.write(ani.to_jshtml())
 
     @staticmethod
-    def create_sample_path_points(n_points: int = 20) -> NDArray[np.complex128]:
-        z = np.random.randint(-10, 10, n_points) + 1j * np.random.randint(
-            -10, 10, n_points
-        )
+    def generate_polygon_points(n_polygon_points: int = 20) -> NDArray[np.complex128]:
+        z = np.random.randint(-10, 10, n_polygon_points) + 1j * np.random.randint(-10, 10, n_polygon_points)
         center = z.mean()
         z_shifted = z - center
         angles = np.angle(z_shifted)
@@ -377,104 +369,143 @@ class Epicycle:
     @staticmethod
     def resample_polygon_points(
         points: NDArray[np.complex128],
-        n_points: int = 50,
+        n_sample_points: int = 50,
     ) -> NDArray[np.complex128]:
         diffs = np.diff(points)
         dists = np.abs(diffs)
         cum_dists = np.concatenate(([0], np.cumsum(dists)))
         total_dist = cum_dists[-1]
-        new_dists = np.linspace(0, total_dist, n_points)
-        x_new = np.interp(new_dists, cum_dists, points.real)
-        y_new = np.interp(new_dists, cum_dists, points.imag)
-        new_points = x_new + 1j * y_new
-        return new_points
-
-    @classmethod
-    def plot_sample_path_points(
-        cls, n_points: int = 20, n_new_points: int = 80
-    ) -> NDArray[np.complex128]:
-        points = cls.create_sample_path_points(n_points)
-        new_points = cls.resample_polygon_points(points, n_points=n_new_points)
-        fft_values, freqs, _, _, speed = cls.fft_points(new_points)
-        fft_recon = np.asarray(
-            [
-                np.sum(fft_values * np.exp(1j * np.asarray(speed) * t))
-                for t in range(n_new_points)
-            ]
-        )
-        fft_recon = np.r_[fft_recon, fft_recon[0]]
-        fig, axes = plt.subplots(figsize=(12, 6), ncols=2)
-        axes[0].set_aspect("equal")
-        # axes[0].set_axis_off()
-        axes[1].plot(fft_recon.real, fft_recon.imag, color="green", lw=5)
-        axes[0].plot(points.real, points.imag, color="steelblue", lw=5)
-        axes[0].plot(new_points.real, new_points.imag, color="tab:orange", lw=1)
-        plt.tight_layout()
-        plt.show()
-        return new_points
+        sample_dists = np.linspace(0, total_dist, n_sample_points)
+        x_sample = np.interp(sample_dists, cum_dists, points.real)
+        y_sample = np.interp(sample_dists, cum_dists, points.imag)
+        sample_points = x_sample + 1j * y_sample
+        return sample_points
 
     @staticmethod
-    def fft_points(
-        points: NDArray[np.complex128],
+    def fft_sample_points(
+        sample_points: NDArray[np.complex128],
+        n_fft_points: int = 100,
     ) -> tuple[
         NDArray[np.complex128],
-        NDArray[np.floating],
         list[float],
         list[float],
         list[float],
     ]:
-        n = len(points)
-        freqs = np.fft.fftfreq(n)
-        fft_values = np.fft.fft(points) / n
+        n_sample_points = len(sample_points)
+        freqs = np.fft.fftfreq(n_sample_points)
+        fft_values = np.fft.fft(sample_points) / n_sample_points
         idx = np.argsort(np.abs(fft_values))[::-1]
+
         freqs = freqs[idx]
         fft_values = fft_values[idx]
-        K = 100
-        freqs = freqs[:K]
-        fft_values = fft_values[:K]
+
+        freqs = freqs[:n_fft_points]
+        fft_values = fft_values[:n_fft_points]
+
         radius = np.abs(fft_values)
         theta = np.angle(fft_values)
-        # convert cycles/frame to radians/frame
         speed = 2 * np.pi * freqs
-        return fft_values, freqs, radius.tolist(), theta.tolist(), speed.tolist()
+
+        fft_points = np.asarray([np.sum(fft_values * np.exp(1j * speed * t)) for t in range(n_sample_points)])
+        fft_points = np.r_[fft_points, fft_points[0]]
+        return fft_points, radius.tolist(), theta.tolist(), speed.tolist()
 
     @classmethod
-    def animate_sample_path_points(cls, n_points: int = 30):
-        new_points = cls.plot_sample_path_points(n_points)
-        fft_values, freqs, _, _, speed = cls.fft_points(new_points)
-        radius = np.abs(fft_values).tolist()
-        theta = np.angle(fft_values).tolist()
-        # `speed` is already in radians/frame from fft_points()
-        cls.animate_circles(
-            radius=radius,
-            theta=theta,
-            speed=speed,
-            orig=0 + 0j,
-            frames=100000,
-            interval=100,
+    def animate_polygon_points(
+        cls,
+        n_polygon_points: int = 20,
+        n_sample_points: int = 80,
+        n_fft_points: int = 100,
+        n_frames: int = 10000,
+        interval: float = 20,
+    ):
+        polygon_points = cls.generate_polygon_points(n_polygon_points)
+        sample_points = cls.resample_polygon_points(polygon_points, n_sample_points=n_sample_points)
+        fft_points, radius, theta, speed = cls.fft_sample_points(sample_points, n_fft_points=n_fft_points)
+
+        fig, axes = plt.subplots(figsize=(8, 8), nrows=2, ncols=2)
+        axes = axes.flatten()
+        for ax in axes:
+            ax.set_aspect('equal')
+            # ax.set_axis_off()
+        ax_polygon, ax_sample, ax_fft, ax_anim = axes
+        ax_polygon.set_title('Polygon Points')
+        ax_sample.set_title('Sample Points')
+        ax_fft.set_title('FFT Points')
+        ax_anim.set_title('Animation')
+
+        ax_polygon.plot(polygon_points.real, polygon_points.imag, marker='o', color='tab:blue', lw=1, markersize=2)
+        xlim = ax_polygon.get_xlim()
+        ylim = ax_polygon.get_ylim()
+
+        ax_sample.plot(sample_points.real, sample_points.imag, marker='o', color='tab:orange', lw=1, markersize=2)
+        ax_fft.plot(fft_points.real, fft_points.imag, marker='o', color='tab:green', lw=1, markersize=2)
+
+        ax_anim.set_xlim(*xlim)
+        ax_anim.set_ylim(*ylim)
+
+        circles = []
+        lines = []
+        trace_points = []
+        (trace,) = ax_anim.plot([], [], marker='o', color='tab:red', lw=1, markersize=2)
+
+        def init_func():
+            center = 0 + 0j
+            for r, t in zip(radius, theta, strict=True):
+                (circle,) = ax_anim.plot([], [], color='tab:gray', ls='-', lw=1, alpha=0.5)
+                (line,) = ax_anim.plot([], [], color='tab:blue', lw=1)
+                circles.append(circle)
+                lines.append(line)
+                center += r * np.exp(1j * t)
+            trace_points.clear()
+            trace_points.append(center)
+            trace.set_data([p.real for p in trace_points], [p.imag for p in trace_points])
+            return circles + lines + [trace]
+        
+        def frame_gen():
+            for i in range(n_frames):
+                if len(trace_points) > 2 and np.abs(trace_points[-1] - trace_points[0]) < 1e-10:
+                    break
+                yield i
+
+        def update(frame):
+            center = 0 + 0j
+            for i, (r, t, s) in enumerate(zip(radius, theta, speed, strict=True)):
+                circles[i].set_data(*cls.get_circle_points(center, r))
+                theta_i = t + s * frame * 0.5
+                lines[i].set_data(*cls.get_arrow_points(center, r, theta_i))
+                center += r * np.exp(1j * theta_i)
+            # if len(trace_points) > 2 and np.abs(trace_points[-1] - trace_points[0]) < 1e-10:
+            #     ani.event_source.stop()
+            trace_points.append(center)
+            trace.set_data(
+                [p.real for p in trace_points],
+                [p.imag for p in trace_points],
+            )
+            return circles + lines + [trace]
+
+        ani = FuncAnimation(
+            fig,
+            update,
+            frames=frame_gen(),
+            init_func=init_func,
+            interval=interval,
+            blit=True,
+            repeat=False,
+            cache_frame_data=False,
         )
+        plt.tight_layout()
+        # plt.show()
+        ani.save('animate_polygon_points.mp4', writer='ffmpeg', dpi=150, fps=30)
+        plt.close(fig)
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     epicycle = Epicycle()
-    K = 2
-    # epicycle.animate_circles(
-    #     # radius=sorted(np.random.randint(1, 10, K), reverse=True),
-    #     radius=np.random.randint(1, 10, K).tolist(),
-    #     theta=(np.random.randint(1, 10, K) / 10).tolist(),
-    #     speed=(np.random.randint(-10, 10, K) / 10).tolist(),
-    #     orig=0 + 0j,
-    #     frames=10000,
-    #     interval=1,
-    # )
-    # epicycle.animate_circles(
-    #     # radius=sorted(np.random.randint(1, 10, K), reverse=True),
-    #     radius=[1, 1, 1],
-    #     theta=[0, 0, 0],
-    #     speed=[np.pi / 8, np.pi / 8, -np.pi / 2],
-    #     orig=0 + 0j,
-    #     frames=3600,
-    #     interval=100,
-    # )
-    # epicycle.plot_sample_path_points(n_points=30)
-    epicycle.animate_sample_path_points(n_points=30)
+    epicycle.animate_polygon_points(
+        n_polygon_points=30,
+        n_sample_points=180,
+        n_fft_points=80,
+        n_frames=10000,
+        interval=10,
+    )
