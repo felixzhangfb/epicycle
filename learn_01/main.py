@@ -426,10 +426,10 @@ class Epicycle:
         n = len(points)
         freqs = np.fft.fftfreq(n)
         fft_values = np.fft.fft(points) / n
-        idx = np.argsort(np.abs(freqs))[::-1]
+        idx = np.argsort(np.abs(fft_values))[::-1]
         freqs = freqs[idx]
         fft_values = fft_values[idx]
-        K = 80
+        K = 100
         freqs = freqs[:K]
         fft_values = fft_values[:K]
         radius = np.abs(fft_values)
@@ -451,7 +451,7 @@ class Epicycle:
             speed=speed,
             orig=0 + 0j,
             frames=100000,
-            interval=1,
+            interval=100,
         )
 
 
@@ -469,12 +469,12 @@ if __name__ == "__main__":
     # )
     # epicycle.animate_circles(
     #     # radius=sorted(np.random.randint(1, 10, K), reverse=True),
-    #     radius=[1, 1],
-    #     theta=[0, 0],
-    #     speed=[np.pi / 4, 0],
+    #     radius=[1, 1, 1],
+    #     theta=[0, 0, 0],
+    #     speed=[np.pi / 8, np.pi / 8, -np.pi / 2],
     #     orig=0 + 0j,
     #     frames=3600,
-    #     interval=1000,
+    #     interval=100,
     # )
     # epicycle.plot_sample_path_points(n_points=30)
     epicycle.animate_sample_path_points(n_points=30)
