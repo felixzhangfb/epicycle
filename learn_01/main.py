@@ -1,5 +1,3 @@
-from random import randint
-
 import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib.animation import FuncAnimation
@@ -376,13 +374,13 @@ class Epicycle:
 
 if __name__ == '__main__':
     epicycle = Epicycle()
-    # K = 10
-    # epicycle.animate_circles(
-    #     # radius=sorted([randint(1, 10) for _ in range(K)], reverse=True),
-    #     radius=[randint(1, 10) for _ in range(K)],
-    #     theta=[randint(1, 10) / 10 for _ in range(K)],
-    #     speed=[randint(-10, 10) / 10 for _ in range(K)],
-    #     orig=0 + 0j,
-    #     frames=10000,
-    # )
+    K = 10
+    epicycle.animate_circles(
+        # radius=sorted(np.random.randint(1, 10, K), reverse=True),
+        radius=np.random.randint(1, 10, K).tolist(),
+        theta=(np.random.randint(1, 10, K) / 10).tolist(),
+        speed=(np.random.randint(-10, 10, K) / 10).tolist(),
+        orig=0 + 0j,
+        frames=10000,
+    )
     epicycle.plot_sample_path_points(n_points=30)
