@@ -7,7 +7,7 @@ from numpy.typing import NDArray
 class Epicycle:
     """A class for creating and animating epicycles (circular epitrochoids).
 
-    An epicycle is a mathematical curve composed of multiple circles where each 
+    An epicycle is a mathematical curve composed of multiple circles where each
     circle's center lies on the circumference of the previous circle. This class
     provides functionality to create, draw, and animate these geometric structures.
 
@@ -31,13 +31,13 @@ class Epicycle:
     ) -> tuple[NDArray, NDArray]:
         """Generate coordinate points on a circle.
 
-        This method calculates and returns coordinate points on the circumference 
+        This method calculates and returns coordinate points on the circumference
         of a circle with specified center, radius, and number of points.
 
         Args:
             center: Center coordinates of the circle, default is origin (0+0j)
             radius: Radius of the circle, default is 1.0
-            n_points: Number of points on the circle, default is 100. 
+            n_points: Number of points on the circle, default is 100.
                      More points result in a smoother circle
 
         Returns:
@@ -66,7 +66,7 @@ class Epicycle:
     ) -> tuple[NDArray, NDArray]:
         """Generate coordinate points for a circle arrow (radius line).
 
-        This method calculates and returns coordinate points for a line segment 
+        This method calculates and returns coordinate points for a line segment
         from the circle center to a specified angle position on the circumference.
 
         Args:
@@ -101,8 +101,8 @@ class Epicycle:
     ):
         """Draw a static plot of a single circle.
 
-        This method creates a matplotlib figure displaying a circle with specified 
-        center, radius, and angle, including the circle outline and a radius line 
+        This method creates a matplotlib figure displaying a circle with specified
+        center, radius, and angle, including the circle outline and a radius line
         (arrow) from center to the specified angle position.
 
         Args:
@@ -120,10 +120,10 @@ class Epicycle:
             # Displays a circle with center at (1,1), radius 2, angle 45 degrees
         """
         fig, ax = plt.subplots(figsize=figsize)
-        ax.set_aspect('equal')
+        ax.set_aspect("equal")
         ax.set_axis_off()
-        ax.plot(*cls.get_circle_points(center, radius), color='#cccccc80', lw=5)
-        ax.plot(*cls.get_arrow_points(center, radius, theta), color='steelblue', lw=2)
+        ax.plot(*cls.get_circle_points(center, radius), color="#cccccc80", lw=5)
+        ax.plot(*cls.get_arrow_points(center, radius, theta), color="steelblue", lw=2)
         fig.show()
 
     @classmethod
@@ -135,15 +135,15 @@ class Epicycle:
     ):
         """Draw a static plot of multiple connected circles (epicycle structure).
 
-        This method creates a matplotlib figure displaying an epicycle structure 
-        composed of multiple circles. Each circle's center lies on the circumference 
+        This method creates a matplotlib figure displaying an epicycle structure
+        composed of multiple circles. Each circle's center lies on the circumference
         of the previous circle, forming a chain-like structure.
 
         Args:
             radius: List of radii for each circle, should be same length as theta list
-            theta: List of initial angles for each circle (in radians), 
+            theta: List of initial angles for each circle (in radians),
                   should be same length as radius list
-            orig: Starting origin coordinates, default is (0+0j). 
+            orig: Starting origin coordinates, default is (0+0j).
                  Center position of the first circle
 
         Returns:
@@ -159,12 +159,12 @@ class Epicycle:
             # Draws three connected circles
         """
         fig, ax = plt.subplots(figsize=(12, 12))
-        ax.set_aspect('equal')
+        ax.set_aspect("equal")
         ax.set_axis_off()
         center = orig
         for r, t in zip(radius, theta, strict=True):
-            ax.plot(*cls.get_circle_points(center, r), color='#cccccc80', lw=5)
-            ax.plot(*cls.get_arrow_points(center, r, t), color='steelblue', lw=2)
+            ax.plot(*cls.get_circle_points(center, r), color="#cccccc80", lw=5)
+            ax.plot(*cls.get_arrow_points(center, r, t), color="steelblue", lw=2)
             center += r * np.exp(1j * t)
         fig.show()
 
@@ -179,7 +179,7 @@ class Epicycle:
         """Create an animation of a single circle rotating.
 
         This method creates an animation showing a circle rotating around its center,
-        while recording and displaying the motion trajectory of a point on the 
+        while recording and displaying the motion trajectory of a point on the
         circumference (red trajectory line).
 
         Args:
@@ -203,13 +203,13 @@ class Epicycle:
             # Creates a circle with radius 2 rotating two full cycles
         """
         fig, ax = plt.subplots(figsize=(6, 6))
-        ax.set_aspect('equal')
+        ax.set_aspect("equal")
         # ax.set_axis_off()
         ax.set_xlim(-radius * 1.1, radius * 1.1)
         ax.set_ylim(-radius * 1.1, radius * 1.1)
-        (circle,) = ax.plot([], [], color='gray', lw=10, alpha=0.5)
-        (line,) = ax.plot([], [], color='steelblue', lw=4)
-        (trace,) = ax.plot([], [], color='red', lw=2)
+        (circle,) = ax.plot([], [], color="gray", lw=10, alpha=0.5)
+        (line,) = ax.plot([], [], color="steelblue", lw=4)
+        (trace,) = ax.plot([], [], color="red", lw=2)
         trace_points = []
 
         def init_func():
@@ -223,7 +223,9 @@ class Epicycle:
             theta = -2 * np.pi / frames * frame
             line.set_data(*cls.get_arrow_points(center, radius, theta))
             trace_points.append(center + radius * np.exp(1j * theta))
-            trace.set_data([p.real for p in trace_points], [p.imag for p in trace_points])
+            trace.set_data(
+                [p.real for p in trace_points], [p.imag for p in trace_points]
+            )
             return circle, line, trace
 
         _ = FuncAnimation(
@@ -249,22 +251,23 @@ class Epicycle:
         speed: list[float],
         orig: complex = 0 + 0j,
         frames: int = 360,
+        interval: float = 0.1,
     ):
         """Create an animation of multiple connected circles (epicycle).
 
-        This method creates a complex animation displaying an epicycle structure 
-        composed of multiple circles. Each circle rotates around its center, and 
+        This method creates a complex animation displaying an epicycle structure
+        composed of multiple circles. Each circle rotates around its center, and
         each circle's center lies on the circumference of the previous circle,
-        forming a chain-like motion structure. It also records and displays the 
+        forming a chain-like motion structure. It also records and displays the
         motion trajectory of the final endpoint.
 
         Args:
             radius: List of radii for each circle, should be same length as theta and speed lists
-            theta: List of initial angles for each circle (in radians), 
+            theta: List of initial angles for each circle (in radians),
                   should be same length as radius and speed lists
-            speed: List of rotation speeds for each circle (radians/frame), 
+            speed: List of rotation speeds for each circle (radians/frame),
                   should be same length as radius and theta lists
-            orig: Starting origin coordinates, default is (0+0j). 
+            orig: Starting origin coordinates, default is (0+0j).
                  Center position of the first circle
             frames: Total number of animation frames, default is 360
 
@@ -293,11 +296,11 @@ class Epicycle:
             ... )
             # Creates an animation of three connected circles with different speeds and radii
         """
-        print(f'{radius=}')
-        print(f'{theta=}')
-        print(f'{speed=}')
+        print(f"{radius=}")
+        print(f"{theta=}")
+        print(f"{speed=}")
         fig, ax = plt.subplots(figsize=(6, 6))
-        ax.set_aspect('equal')
+        ax.set_aspect("equal")
         ax.set_axis_off()
         xlim = sum(radius) * 1.1
         ylim = sum(radius) * 1.1
@@ -306,35 +309,39 @@ class Epicycle:
         circles = []
         lines = []
         trace_points = []
-        (trace,) = ax.plot([], [], color='tab:red', lw=1)
+        (trace,) = ax.plot([], [], color="tab:red", lw=1)
 
         def init_func():
             center = orig
-            t0 = 0
             for r, t in zip(radius, theta, strict=True):
-                (circle,) = ax.plot([], [], color='gray', ls='-', lw=1, alpha=0.5)
-                t0 += t
-                (line,) = ax.plot([], [], color='steelblue', lw=1)
+                (circle,) = ax.plot([], [], color="gray", ls="-", lw=1, alpha=0.5)
+                (line,) = ax.plot([], [], color="steelblue", lw=1)
                 circles.append(circle)
                 lines.append(line)
-                center += r * np.exp(1j * t0)
+                # use the circle's own initial angle `t` (do not accumulate)
+                center += r * np.exp(1j * t)
             trace_points.clear()
             trace_points.append(center)
-            trace.set_data([p.real for p in trace_points], [p.imag for p in trace_points])
+            trace.set_data(
+                [p.real for p in trace_points], [p.imag for p in trace_points]
+            )
             return circles + lines + [trace]
 
         def update(frame):
             center = orig
-            t0 = 0
             for i, (r, t, s) in enumerate(zip(radius, theta, speed, strict=True)):
                 circles[i].set_data(*cls.get_circle_points(center, r))
-                t0 += t + np.pi / 180 * s * frame
-                lines[i].set_data(*cls.get_arrow_points(center, r, t0))
-                center += r * np.exp(1j * t0)
+                # compute angle for this frame without mutating the original `theta` list
+                theta_i = t + s * frame
+                lines[i].set_data(*cls.get_arrow_points(center, r, theta_i))
+                center += r * np.exp(1j * theta_i)
             if len(trace_points) > 2 and np.abs(center - trace_points[0]) < 1e-10:
                 ani.event_source.stop()
             trace_points.append(center)
-            trace.set_data([p.real for p in trace_points], [p.imag for p in trace_points])
+            trace.set_data(
+                [p.real for p in trace_points],
+                [p.imag for p in trace_points],
+            )
             return circles + lines + [trace]
 
         ani = FuncAnimation(
@@ -342,7 +349,7 @@ class Epicycle:
             update,
             frames=frames,
             init_func=init_func,
-            interval=0.1,
+            interval=interval,
             blit=True,
             repeat=False,
         )
@@ -352,35 +359,122 @@ class Epicycle:
         # with open('animation.html', 'w') as f:
         #     f.write(ani.to_jshtml())
 
-    @classmethod
-    def create_sample_path_points(cls, n_points: int = 20) -> NDArray[np.complex128]:
-        z = np.random.randint(-10, 10, n_points) + 1j * np.random.randint(-10, 10, n_points)
+    @staticmethod
+    def create_sample_path_points(n_points: int = 20) -> NDArray[np.complex128]:
+        z = np.random.randint(-10, 10, n_points) + 1j * np.random.randint(
+            -10, 10, n_points
+        )
         center = z.mean()
         z_shifted = z - center
         angles = np.angle(z_shifted)
         order = np.argsort(angles)
         z_order = z[order]
         z_order = np.r_[z_order, z_order[0]]
+        z_order -= center
+        z_order /= np.max(np.abs(z_order))
         return z_order
-    
-    @classmethod
-    def plot_sample_path_points(cls, n_points: int = 20):
-        points = cls.create_sample_path_points(n_points)
-        fig, ax = plt.subplots(figsize=(6, 6))
-        ax.set_aspect('equal')
-        ax.set_axis_off()
-        ax.plot(points.real, points.imag, marker='o', color='steelblue', lw=1)
-        plt.show()
 
-if __name__ == '__main__':
+    @staticmethod
+    def resample_polygon_points(
+        points: NDArray[np.complex128],
+        n_points: int = 50,
+    ) -> NDArray[np.complex128]:
+        diffs = np.diff(points)
+        dists = np.abs(diffs)
+        cum_dists = np.concatenate(([0], np.cumsum(dists)))
+        total_dist = cum_dists[-1]
+        new_dists = np.linspace(0, total_dist, n_points)
+        x_new = np.interp(new_dists, cum_dists, points.real)
+        y_new = np.interp(new_dists, cum_dists, points.imag)
+        new_points = x_new + 1j * y_new
+        return new_points
+
+    @classmethod
+    def plot_sample_path_points(
+        cls, n_points: int = 20, n_new_points: int = 80
+    ) -> NDArray[np.complex128]:
+        points = cls.create_sample_path_points(n_points)
+        new_points = cls.resample_polygon_points(points, n_points=n_new_points)
+        fft_values, freqs, _, _, speed = cls.fft_points(new_points)
+        fft_recon = np.asarray(
+            [
+                np.sum(fft_values * np.exp(1j * np.asarray(speed) * t))
+                for t in range(n_new_points)
+            ]
+        )
+        fft_recon = np.r_[fft_recon, fft_recon[0]]
+        fig, axes = plt.subplots(figsize=(12, 6), ncols=2)
+        axes[0].set_aspect("equal")
+        # axes[0].set_axis_off()
+        axes[1].plot(fft_recon.real, fft_recon.imag, color="green", lw=5)
+        axes[0].plot(points.real, points.imag, color="steelblue", lw=5)
+        axes[0].plot(new_points.real, new_points.imag, color="tab:orange", lw=1)
+        plt.tight_layout()
+        plt.show()
+        return new_points
+
+    @staticmethod
+    def fft_points(
+        points: NDArray[np.complex128],
+    ) -> tuple[
+        NDArray[np.complex128],
+        NDArray[np.floating],
+        list[float],
+        list[float],
+        list[float],
+    ]:
+        n = len(points)
+        freqs = np.fft.fftfreq(n)
+        fft_values = np.fft.fft(points) / n
+        idx = np.argsort(np.abs(freqs))[::-1]
+        freqs = freqs[idx]
+        fft_values = fft_values[idx]
+        K = 80
+        freqs = freqs[:K]
+        fft_values = fft_values[:K]
+        radius = np.abs(fft_values)
+        theta = np.angle(fft_values)
+        # convert cycles/frame to radians/frame
+        speed = 2 * np.pi * freqs
+        return fft_values, freqs, radius.tolist(), theta.tolist(), speed.tolist()
+
+    @classmethod
+    def animate_sample_path_points(cls, n_points: int = 30):
+        new_points = cls.plot_sample_path_points(n_points)
+        fft_values, freqs, _, _, speed = cls.fft_points(new_points)
+        radius = np.abs(fft_values).tolist()
+        theta = np.angle(fft_values).tolist()
+        # `speed` is already in radians/frame from fft_points()
+        cls.animate_circles(
+            radius=radius,
+            theta=theta,
+            speed=speed,
+            orig=0 + 0j,
+            frames=100000,
+            interval=1,
+        )
+
+
+if __name__ == "__main__":
     epicycle = Epicycle()
-    K = 10
-    epicycle.animate_circles(
-        # radius=sorted(np.random.randint(1, 10, K), reverse=True),
-        radius=np.random.randint(1, 10, K).tolist(),
-        theta=(np.random.randint(1, 10, K) / 10).tolist(),
-        speed=(np.random.randint(-10, 10, K) / 10).tolist(),
-        orig=0 + 0j,
-        frames=10000,
-    )
-    epicycle.plot_sample_path_points(n_points=30)
+    K = 2
+    # epicycle.animate_circles(
+    #     # radius=sorted(np.random.randint(1, 10, K), reverse=True),
+    #     radius=np.random.randint(1, 10, K).tolist(),
+    #     theta=(np.random.randint(1, 10, K) / 10).tolist(),
+    #     speed=(np.random.randint(-10, 10, K) / 10).tolist(),
+    #     orig=0 + 0j,
+    #     frames=10000,
+    #     interval=1,
+    # )
+    # epicycle.animate_circles(
+    #     # radius=sorted(np.random.randint(1, 10, K), reverse=True),
+    #     radius=[1, 1],
+    #     theta=[0, 0],
+    #     speed=[np.pi / 4, 0],
+    #     orig=0 + 0j,
+    #     frames=3600,
+    #     interval=1000,
+    # )
+    # epicycle.plot_sample_path_points(n_points=30)
+    epicycle.animate_sample_path_points(n_points=30)
