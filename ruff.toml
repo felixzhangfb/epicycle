@@ -1,0 +1,11 @@
+line-length = 127
+indent-width = 4
+
+[lint]
+extend-select = ["A", "B", "D", "E501", "F", "I", "UP"]
+ignore = ["D100", "D101", "D102", "D103", "D107", "D203", "D213", "D400", "D413", "D415"]
+
+[format]
+indent-style = "space"
+line-ending = "lf"
+quote-style = "single"

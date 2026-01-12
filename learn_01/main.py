@@ -1,6 +1,6 @@
 import matplotlib.pyplot as plt
 import numpy as np
-from matplotlib.animation import FuncAnimation
+from matplotlib.animation import FuncAnimation, PillowWriter
 from numpy.typing import NDArray
 
 
@@ -22,6 +22,19 @@ class Epicycle:
         >>> epicycle.draw_circle(radius=2.0, theta=0.5)
         >>> epicycle.animate_circles([1, 2, 3], [0, 1, 2], [1, 0.5, 0.25])
     """
+
+    @staticmethod
+    def is_jupyter():
+        """Check if the code is running in a Jupyter notebook."""
+        try:
+            from IPython.core.getipython import get_ipython as _get_ipython
+
+            ip = _get_ipython()
+            if ip is None:
+                return False
+            return ip.__class__.__name__ == 'ZMQInteractiveShell'
+        except Exception:
+            return False
 
     @staticmethod
     def get_circle_points(
@@ -355,7 +368,9 @@ class Epicycle:
 
     @staticmethod
     def generate_polygon_points(n_polygon_points: int = 20) -> NDArray[np.complex128]:
-        z = np.random.randint(-10, 10, n_polygon_points) + 1j * np.random.randint(-10, 10, n_polygon_points)
+        x = np.random.randint(-10, 10, n_polygon_points)
+        y = np.random.randint(-10, 10, n_polygon_points)
+        z = x + 1j * y
         center = z.mean()
         z_shifted = z - center
         angles = np.angle(z_shifted)
@@ -418,6 +433,7 @@ class Epicycle:
         n_fft_points: int = 100,
         n_frames: int = 10000,
         interval: float = 20,
+        gif_name: str = 'polygon_animation.gif',
     ):
         polygon_points = cls.generate_polygon_points(n_polygon_points)
         sample_points = cls.resample_polygon_points(polygon_points, n_sample_points=n_sample_points)
@@ -434,12 +450,33 @@ class Epicycle:
         ax_fft.set_title('FFT Points')
         ax_anim.set_title('Animation')
 
-        ax_polygon.plot(polygon_points.real, polygon_points.imag, marker='o', color='tab:blue', lw=1, markersize=2)
+        ax_polygon.plot(
+            polygon_points.real,
+            polygon_points.imag,
+            marker='o',
+            color='tab:blue',
+            lw=1,
+            markersize=2,
+        )
         xlim = ax_polygon.get_xlim()
         ylim = ax_polygon.get_ylim()
 
-        ax_sample.plot(sample_points.real, sample_points.imag, marker='o', color='tab:orange', lw=1, markersize=2)
-        ax_fft.plot(fft_points.real, fft_points.imag, marker='o', color='tab:green', lw=1, markersize=2)
+        ax_sample.plot(
+            sample_points.real,
+            sample_points.imag,
+            marker='o',
+            color='tab:orange',
+            lw=1,
+            markersize=2,
+        )
+        ax_fft.plot(
+            fft_points.real,
+            fft_points.imag,
+            marker='o',
+            color='tab:green',
+            lw=1,
+            markersize=2,
+        )
 
         ax_anim.set_xlim(*xlim)
         ax_anim.set_ylim(*ylim)
@@ -461,7 +498,7 @@ class Epicycle:
             trace_points.append(center)
             trace.set_data([p.real for p in trace_points], [p.imag for p in trace_points])
             return circles + lines + [trace]
-        
+
         def frame_gen():
             for i in range(n_frames):
                 if len(trace_points) > 2 and np.abs(trace_points[-1] - trace_points[0]) < 1e-10:
@@ -472,11 +509,9 @@ class Epicycle:
             center = 0 + 0j
             for i, (r, t, s) in enumerate(zip(radius, theta, speed, strict=True)):
                 circles[i].set_data(*cls.get_circle_points(center, r))
-                theta_i = t + s * frame * 0.5
+                theta_i = t + s * frame
                 lines[i].set_data(*cls.get_arrow_points(center, r, theta_i))
                 center += r * np.exp(1j * theta_i)
-            # if len(trace_points) > 2 and np.abs(trace_points[-1] - trace_points[0]) < 1e-10:
-            #     ani.event_source.stop()
             trace_points.append(center)
             trace.set_data(
                 [p.real for p in trace_points],
@@ -495,9 +530,96 @@ class Epicycle:
             cache_frame_data=False,
         )
         plt.tight_layout()
-        # plt.show()
-        ani.save('animate_polygon_points.mp4', writer='ffmpeg', dpi=150, fps=30)
-        plt.close(fig)
+        if cls.is_jupyter():
+            from IPython.display import Image
+            from IPython.display import display as _display
+
+            ani.save(gif_name, writer=PillowWriter(fps=30))
+            _display(Image(filename=gif_name))
+        else:
+            plt.show()
+
+    @classmethod
+    def animate_discomposition(
+        cls,
+        n_polygon_points: int = 30,
+        n_sample_points: int = 80,
+        n_fft_points: int = 100,
+        interval: float = 200,
+        wave_n_points: int = 1000,
+        gif_name: str = 'discomposite_animation.gif',
+    ):
+        polygon_points = cls.generate_polygon_points(n_polygon_points)
+        sample_points = cls.resample_polygon_points(polygon_points, n_sample_points=n_sample_points)
+        fft_points, radius, theta, speed = cls.fft_sample_points(sample_points, n_fft_points=n_fft_points)
+
+        fig = plt.figure(figsize=(18, 6))
+        gs = fig.add_gridspec(nrows=2, ncols=3)
+        ax_polygon = fig.add_subplot(gs[:, 0])
+        ax_x = fig.add_subplot(gs[0, 1])
+        ax_y = fig.add_subplot(gs[0, 2])
+        ax_xs = fig.add_subplot(gs[1, 1])
+        ax_ys = fig.add_subplot(gs[1, 2])
+
+        ax_polygon.plot(polygon_points.real, polygon_points.imag, marker='o', color='tab:blue', lw=1, markersize=2)
+        ax_polygon.scatter(sample_points.real, sample_points.imag, marker='o', color='tab:orange', s=5)
+        ax_x.plot(sample_points.real, marker='o', color='tab:green', lw=1, markersize=2)
+        ax_x.set_title('x sample points')
+        ax_xs.set_xlim(0 - wave_n_points * 0.05, wave_n_points * 1.05)
+        ax_xs.set_ylim(ax_x.get_ylim())
+        ax_y.plot(sample_points.imag, marker='o', color='tab:purple', lw=1, markersize=2)
+        ax_y.set_title('y sample points')
+        ax_ys.set_xlim(0 - wave_n_points * 0.05, wave_n_points * 1.05)
+        ax_ys.set_ylim(ax_y.get_ylim())
+
+        line_xs = []
+        line_ys = []
+        for _ in range(len(theta)):
+            (line_x,) = ax_xs.plot([], [], lw=1)
+            line_xs.append(line_x)
+            (line_y,) = ax_ys.plot([], [], lw=1)
+            line_ys.append(line_y)
+
+        (line_x_sum,) = ax_xs.plot([], [], color='tab:green', lw=1)
+        (line_y_sum,) = ax_ys.plot([], [], color='tab:purple', lw=1)
+        xs = []
+        ys = []
+        for t, s, r in zip(theta, speed, radius, strict=True):
+            phases = np.linspace(t, t + s * len(fft_points), wave_n_points)
+            xs.append(np.cos(phases) * r)
+            ys.append(np.sin(phases) * r)
+
+        def init_func():
+            for line in line_xs + line_ys:
+                line.set_data([], [])
+            line_x_sum.set_data([], [])
+            line_y_sum.set_data([], [])
+            return line_xs + line_ys + [line_x_sum, line_y_sum]
+
+        def update(frame):
+            line_xs[frame].set_data(range(wave_n_points), xs[frame])
+            line_ys[frame].set_data(range(wave_n_points), ys[frame])
+            line_x_sum.set_data(range(wave_n_points), np.sum(np.asarray(xs[:frame+1]), axis=0))
+            line_y_sum.set_data(range(wave_n_points), np.sum(np.asarray(ys[:frame+1]), axis=0))
+            return line_xs + line_ys + [line_x_sum, line_y_sum]
+
+        ani = FuncAnimation(
+            fig,
+            update,
+            frames=len(theta),
+            init_func=init_func,
+            interval=interval,
+            blit=True
+        )
+        plt.tight_layout()
+        if cls.is_jupyter():
+            from IPython.display import Image
+            from IPython.display import display as _display
+
+            ani.save(gif_name, writer=PillowWriter(fps=10))
+            _display(Image(filename=gif_name))
+        else:
+            plt.show()
 
 
 if __name__ == '__main__':
@@ -508,4 +630,11 @@ if __name__ == '__main__':
         n_fft_points=80,
         n_frames=10000,
         interval=10,
+    )
+    epicycle.animate_discomposition(
+        n_polygon_points=30,
+        n_sample_points=180,
+        n_fft_points=80,
+        interval=200,
+        wave_n_points=1000,
     )
