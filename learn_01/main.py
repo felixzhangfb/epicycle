@@ -24,7 +24,7 @@ class Epicycle:
     """
 
     @staticmethod
-    def is_jupyter():
+    def _is_jupyter():
         """Check if the code is running in a Jupyter notebook."""
         try:
             from IPython.core.getipython import get_ipython as _get_ipython
@@ -37,7 +37,7 @@ class Epicycle:
             return False
 
     @staticmethod
-    def get_circle_points(
+    def _get_circle_points(
         center: complex = 0 + 0j,
         radius: float = 1.0,
         n_points: int = 100,
@@ -72,7 +72,7 @@ class Epicycle:
         return x, y
 
     @staticmethod
-    def get_arrow_points(
+    def _get_arrow_points(
         center: complex = 0 + 0j,
         radius: float = 1.0,
         theta: float = 0.0,
@@ -105,7 +105,7 @@ class Epicycle:
         return x, y
 
     @classmethod
-    def draw_circle(
+    def _draw_circle(
         cls,
         center: complex = 0 + 0j,
         radius: float = 1.0,
@@ -135,12 +135,12 @@ class Epicycle:
         fig, ax = plt.subplots(figsize=figsize)
         ax.set_aspect('equal')
         ax.set_axis_off()
-        ax.plot(*cls.get_circle_points(center, radius), color='#cccccc80', lw=5)
-        ax.plot(*cls.get_arrow_points(center, radius, theta), color='tab:blue', lw=2)
+        ax.plot(*cls._get_circle_points(center, radius), color='#cccccc80', lw=5)
+        ax.plot(*cls._get_arrow_points(center, radius, theta), color='tab:blue', lw=2)
         fig.show()
 
     @classmethod
-    def draw_circles(
+    def _draw_circles(
         cls,
         radius: list[float],
         theta: list[float],
@@ -176,13 +176,13 @@ class Epicycle:
         ax.set_axis_off()
         center = orig
         for r, t in zip(radius, theta, strict=True):
-            ax.plot(*cls.get_circle_points(center, r), color='#cccccc80', lw=5)
-            ax.plot(*cls.get_arrow_points(center, r, t), color='tab:blue', lw=2)
+            ax.plot(*cls._get_circle_points(center, r), color='#cccccc80', lw=5)
+            ax.plot(*cls._get_arrow_points(center, r, t), color='tab:blue', lw=2)
             center += r * np.exp(1j * t)
         fig.show()
 
     @classmethod
-    def animate_circle(
+    def _animate_circle(
         cls,
         center: complex,
         radius: float,
@@ -226,7 +226,7 @@ class Epicycle:
         trace_points = []
 
         def init_func():
-            circle.set_data(*cls.get_circle_points(center, radius, n_points=frames))
+            circle.set_data(*cls._get_circle_points(center, radius, n_points=frames))
             line.set_data([], [])
             trace.set_data([], [])
             trace_points.clear()
@@ -234,7 +234,7 @@ class Epicycle:
 
         def update(frame):
             theta = -2 * np.pi / frames * frame
-            line.set_data(*cls.get_arrow_points(center, radius, theta))
+            line.set_data(*cls._get_arrow_points(center, radius, theta))
             trace_points.append(center + radius * np.exp(1j * theta))
             trace.set_data([p.real for p in trace_points], [p.imag for p in trace_points])
             return circle, line, trace
@@ -257,12 +257,13 @@ class Epicycle:
     @classmethod
     def animate_circles(
         cls,
-        radius: list[float],
-        theta: list[float],
-        speed: list[float],
+        radius: list[float] | None = None,
+        theta: list[float] | None = None,
+        speed: list[float] | None = None,
         orig: complex = 0 + 0j,
-        frames: int = 360,
-        interval: float = 0.1,
+        n_frames: int = 10000,
+        interval: float = 10,
+        gif_name: str = 'circles_animation.gif',
     ):
         """Create an animation of multiple connected circles (epicycle).
 
@@ -280,7 +281,7 @@ class Epicycle:
                   should be same length as radius and theta lists
             orig: Starting origin coordinates, default is (0+0j).
                  Center position of the first circle
-            frames: Total number of animation frames, default is 360
+            n_frames: Total number of animation frames, default is 10000
             interval: Time interval between frames in seconds, default is 0.1
 
         Returns:
@@ -300,7 +301,7 @@ class Epicycle:
         Example:
             >>> epicycle = Epicycle()
             >>> epicycle.animate_circles(
-            ...     radius=[3.0, 2.0, 1.0],
+            ...     radius=[2.0, 2.0, 1.0],
             ...     theta=[0.0, np.pi/4, np.pi/2],
             ...     speed=[0.01, 0.02, 0.03],
             ...     orig=0+0j,
@@ -308,6 +309,10 @@ class Epicycle:
             ... )
             # Creates an animation of three connected circles with different speeds and radiuses
         """
+        radius = radius or [2.0, 2.0, 1.0]
+        theta = theta or [0.0, np.pi/4, np.pi/2]
+        speed = speed or [0.01, 0.02, 0.03]
+
         fig, ax = plt.subplots(figsize=(6, 6))
         ax.set_aspect('equal')
         ax.set_axis_off()
@@ -334,16 +339,20 @@ class Epicycle:
             trace.set_data([p.real for p in trace_points], [p.imag for p in trace_points])
             return circles + lines + [trace]
 
+        def frame_gen():
+            for i in range(n_frames):
+                if len(trace_points) > 2 and np.isclose(trace_points[-1], trace_points[0], atol=1e-6):
+                    break
+                yield i
+
         def update(frame):
             center = orig
             for i, (r, t, s) in enumerate(zip(radius, theta, speed, strict=True)):
-                circles[i].set_data(*cls.get_circle_points(center, r))
+                circles[i].set_data(*cls._get_circle_points(center, r))
                 # compute angle for this frame without mutating the original `theta` list
                 theta_i = t + s * frame
-                lines[i].set_data(*cls.get_arrow_points(center, r, theta_i))
+                lines[i].set_data(*cls._get_arrow_points(center, r, theta_i))
                 center += r * np.exp(1j * theta_i)
-            if len(trace_points) > 2 and np.abs(center - trace_points[0]) < 1e-10:
-                ani.event_source.stop()
             trace_points.append(center)
             trace.set_data(
                 [p.real for p in trace_points],
@@ -354,20 +363,25 @@ class Epicycle:
         ani = FuncAnimation(
             fig,
             update,
-            frames=frames,
+            frames=frame_gen(),
             init_func=init_func,
             interval=interval,
             blit=True,
             repeat=False,
+            cache_frame_data=False,
         )
         plt.tight_layout()
-        plt.show()
-        # plt.close(fig)
-        # with open('animation.html', 'w') as f:
-        #     f.write(ani.to_jshtml())
+        if cls._is_jupyter():
+            from IPython.display import Image
+            from IPython.display import display as _display
+
+            ani.save(gif_name, writer=PillowWriter(fps=30))
+            _display(Image(filename=gif_name))
+        else:
+            plt.show()
 
     @staticmethod
-    def generate_polygon_points(n_polygon_points: int = 20) -> NDArray[np.complex128]:
+    def _generate_polygon_points(n_polygon_points: int = 20) -> NDArray[np.complex128]:
         x = np.random.randint(-10, 10, n_polygon_points)
         y = np.random.randint(-10, 10, n_polygon_points)
         z = x + 1j * y
@@ -382,7 +396,7 @@ class Epicycle:
         return z_order
 
     @staticmethod
-    def resample_polygon_points(
+    def _resample_polygon_points(
         points: NDArray[np.complex128],
         n_sample_points: int = 50,
     ) -> NDArray[np.complex128]:
@@ -397,7 +411,7 @@ class Epicycle:
         return sample_points
 
     @staticmethod
-    def fft_sample_points(
+    def _fft_sample_points(
         sample_points: NDArray[np.complex128],
         n_fft_points: int = 100,
     ) -> tuple[
@@ -435,9 +449,9 @@ class Epicycle:
         interval: float = 20,
         gif_name: str = 'polygon_animation.gif',
     ):
-        polygon_points = cls.generate_polygon_points(n_polygon_points)
-        sample_points = cls.resample_polygon_points(polygon_points, n_sample_points=n_sample_points)
-        fft_points, radius, theta, speed = cls.fft_sample_points(sample_points, n_fft_points=n_fft_points)
+        polygon_points = cls._generate_polygon_points(n_polygon_points)
+        sample_points = cls._resample_polygon_points(polygon_points, n_sample_points=n_sample_points)
+        fft_points, radius, theta, speed = cls._fft_sample_points(sample_points, n_fft_points=n_fft_points)
 
         fig, axes = plt.subplots(figsize=(8, 8), nrows=2, ncols=2)
         axes = axes.flatten()
@@ -501,16 +515,16 @@ class Epicycle:
 
         def frame_gen():
             for i in range(n_frames):
-                if len(trace_points) > 2 and np.abs(trace_points[-1] - trace_points[0]) < 1e-10:
+                if len(trace_points) > 2 and np.isclose(trace_points[-1], trace_points[0], atol=1e-10):
                     break
                 yield i
 
         def update(frame):
             center = 0 + 0j
             for i, (r, t, s) in enumerate(zip(radius, theta, speed, strict=True)):
-                circles[i].set_data(*cls.get_circle_points(center, r))
+                circles[i].set_data(*cls._get_circle_points(center, r))
                 theta_i = t + s * frame
-                lines[i].set_data(*cls.get_arrow_points(center, r, theta_i))
+                lines[i].set_data(*cls._get_arrow_points(center, r, theta_i))
                 center += r * np.exp(1j * theta_i)
             trace_points.append(center)
             trace.set_data(
@@ -530,7 +544,7 @@ class Epicycle:
             cache_frame_data=False,
         )
         plt.tight_layout()
-        if cls.is_jupyter():
+        if cls._is_jupyter():
             from IPython.display import Image
             from IPython.display import display as _display
 
@@ -549,9 +563,9 @@ class Epicycle:
         wave_n_points: int = 1000,
         gif_name: str = 'discomposite_animation.gif',
     ):
-        polygon_points = cls.generate_polygon_points(n_polygon_points)
-        sample_points = cls.resample_polygon_points(polygon_points, n_sample_points=n_sample_points)
-        fft_points, radius, theta, speed = cls.fft_sample_points(sample_points, n_fft_points=n_fft_points)
+        polygon_points = cls._generate_polygon_points(n_polygon_points)
+        sample_points = cls._resample_polygon_points(polygon_points, n_sample_points=n_sample_points)
+        fft_points, radius, theta, speed = cls._fft_sample_points(sample_points, n_fft_points=n_fft_points)
 
         fig = plt.figure(figsize=(18, 6))
         gs = fig.add_gridspec(nrows=2, ncols=3)
@@ -613,7 +627,7 @@ class Epicycle:
             repeat=False,
         )
         plt.tight_layout()
-        if cls.is_jupyter():
+        if cls._is_jupyter():
             from IPython.display import Image
             from IPython.display import display as _display
 
