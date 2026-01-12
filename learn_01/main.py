@@ -25,7 +25,11 @@ class Epicycle:
 
     @staticmethod
     def _is_jupyter():
-        """Check if the code is running in a Jupyter notebook."""
+        """Return True if running inside a Jupyter (ZMQ) kernel.
+
+        Returns:
+            bool: True if executed in a Jupyter notebook, otherwise False.
+        """
         try:
             from IPython.core.getipython import get_ipython as _get_ipython
 
@@ -42,30 +46,17 @@ class Epicycle:
         radius: float = 1.0,
         n_points: int = 100,
     ) -> tuple[NDArray, NDArray]:
-        """Generate coordinate points on a circle.
-
-        This method calculates and returns coordinate points on the circumference
-        of a circle with specified center, radius, and number of points.
+        """Return x, y coordinate arrays sampled from a circle.
 
         Args:
-            center: Center coordinates of the circle, default is origin (0+0j)
-            radius: Radius of the circle, default is 1.0
-            n_points: Number of points on the circle, default is 100.
-                     More points result in a smoother circle
+            center (complex): Circle center. Defaults to 0+0j.
+            radius (float): Circle radius. Defaults to 1.0.
+            n_points (int): Number of points to sample. Defaults to 100.
 
         Returns:
-            tuple[NDArray, NDArray]: A tuple containing x and y coordinates
-                - First array contains x coordinates
-                - Second array contains y coordinates
-
-        Example:
-            >>> x, y = Epicycle.get_circle_points(center=1+1j, radius=2.0, n_points=50)
-            >>> len(x)
-            50
-            >>> len(y)
-            50
+            tuple[NDArray, NDArray]: x and y coordinate arrays.
         """
-        theta = np.linspace(0, 2 * np.pi, n_points)
+        theta = np.linspace(0, 2 * np.pi, n_points) 
         circle = center + radius * np.exp(1j * theta)
         x = circle.real
         y = circle.imag
@@ -77,27 +68,15 @@ class Epicycle:
         radius: float = 1.0,
         theta: float = 0.0,
     ) -> tuple[NDArray, NDArray]:
-        """Generate coordinate points for a circle arrow (radius line).
-
-        This method calculates and returns coordinate points for a line segment
-        from the circle center to a specified angle position on the circumference.
+        """Return start/end coordinates of a radius line at angle ``theta``.
 
         Args:
-            center: Center coordinates of the circle, default is origin (0+0j)
-            radius: Radius of the circle, default is 1.0
-            theta: Angle in radians, default is 0.0, representing angle from positive x-axis
+            center (complex): Circle center.
+            radius (float): Circle radius.
+            theta (float): Angle in radians.
 
         Returns:
-            tuple[NDArray, NDArray]: A tuple containing start and end points of the arrow line
-                - First array contains two x coordinate values: [start_x, end_x]
-                - Second array contains two y coordinate values: [start_y, end_y]
-
-        Example:
-            >>> x, y = Epicycle.get_arrow_points(center=0+0j, radius=2.0, theta=np.pi/2)
-            >>> x
-            array([0., 0.])
-            >>> y
-            array([0., 2.])
+            tuple[NDArray, NDArray]: x and y arrays of length 2 (start, end).
         """
         end_point = center + radius * np.exp(1j * theta)
         x = np.array([center.real, end_point.real])
@@ -112,25 +91,13 @@ class Epicycle:
         theta: float = 0.0,
         figsize: tuple[float, float] = (6, 6),
     ):
-        """Draw a static plot of a single circle.
-
-        This method creates a matplotlib figure displaying a circle with specified
-        center, radius, and angle, including the circle outline and a radius line
-        (arrow) from center to the specified angle position.
+        """Draw a circle with a radius line using Matplotlib.
 
         Args:
-            center: Center coordinates of the circle, default is origin (0+0j)
-            radius: Radius of the circle, default is 1.0
-            theta: Angle in radians, default is 0.0, specifies the radius line direction
-            figsize: Figure size, default is (6, 6), in inches
-
-        Returns:
-            None: This method displays the figure directly and returns no value
-
-        Example:
-            >>> epicycle = Epicycle()
-            >>> epicycle.draw_circle(center=1+1j, radius=2.0, theta=np.pi/4)
-            # Displays a circle with center at (1,1), radius 2, angle 45 degrees
+            center (complex): Circle center.
+            radius (float): Circle radius.
+            theta (float): Angle for the radius line (radians).
+            figsize (tuple): Figure size in inches.
         """
         fig, ax = plt.subplots(figsize=figsize)
         ax.set_aspect('equal')
@@ -146,30 +113,12 @@ class Epicycle:
         theta: list[float],
         orig: complex = 0 + 0j,
     ):
-        """Draw a static plot of multiple connected circles (epicycle structure).
-
-        This method creates a matplotlib figure displaying an epicycle structure
-        composed of multiple circles. Each circle's center lies on the circumference
-        of the previous circle, forming a chain-like structure.
+        """Draw multiple connected circles forming an epicycle chain.
 
         Args:
-            radius: List of radii for each circle, should be same length as theta list
-            theta: List of initial angles for each circle (in radians),
-                  should be same length as radius list
-            orig: Starting origin coordinates, default is (0+0j).
-                 Center position of the first circle
-
-        Returns:
-            None: This method displays the figure directly and returns no value
-
-        Example:
-            >>> epicycle = Epicycle()
-            >>> epicycle.draw_circles(
-            ...     radius=[3.0, 2.0, 1.0],
-            ...     theta=[0.0, np.pi/2, np.pi],
-            ...     orig=0+0j
-            ... )
-            # Draws three connected circles
+            radius (list[float]): Radii for each circle.
+            theta (list[float]): Initial angles for each circle (radians).
+            orig (complex): Starting origin for the first circle.
         """
         fig, ax = plt.subplots(figsize=(12, 12))
         ax.set_aspect('equal')
@@ -189,31 +138,13 @@ class Epicycle:
         speed: float,
         frames: int = 360,
     ):
-        """Create an animation of a single circle rotating.
-
-        This method creates an animation showing a circle rotating around its center,
-        while recording and displaying the motion trajectory of a point on the
-        circumference (red trajectory line).
+        """Animate a rotating circle and plot its trajectory.
 
         Args:
-            center: Center coordinates of the circle, cannot be default value
-            radius: Radius of the circle, cannot be default value
-            speed: Animation speed control, smaller values make animation faster
-            frames: Number of animation frames, default is 360 (one full rotation)
-
-        Returns:
-            None: This method displays the animation directly and returns no value
-
-        Animation Features:
-            - Circle outline displayed in gray
-            - Radius line displayed in steel blue
-            - Trajectory line displayed in red
-            - Animation rotates in clockwise direction
-
-        Example:
-            >>> epicycle = Epicycle()
-            >>> epicycle.animate_circle(center=0+0j, radius=2.0, speed=0.1, frames=720)
-            # Creates a circle with radius 2 rotating two full cycles
+            center (complex): Circle center.
+            radius (float): Circle radius.
+            speed (float): Frame interval / speed control.
+            frames (int): Number of frames (default 360).
         """
         fig, ax = plt.subplots(figsize=(6, 6))
         ax.set_aspect('equal')
@@ -265,49 +196,16 @@ class Epicycle:
         interval: float = 10,
         gif_name: str = 'circles_animation.gif',
     ):
-        """Create an animation of multiple connected circles (epicycle).
-
-        This method creates a complex animation displaying an epicycle structure
-        composed of multiple circles. Each circle rotates around its center, and
-        each circle's center lies on the circumference of the previous circle,
-        forming a chain-like motion structure. It also records and displays the
-        motion trajectory of the final endpoint.
+        """Animate a chain of rotating circles and trace the final endpoint.
 
         Args:
-            radius: List of radii for each circle, should be same length as theta and speed lists
-            theta: List of initial angles for each circle (in radians),
-                  should be same length as radius and speed lists
-            speed: List of rotation speeds for each circle (radians/frame),
-                  should be same length as radius and theta lists
-            orig: Starting origin coordinates, default is (0+0j).
-                 Center position of the first circle
-            n_frames: Total number of animation frames, default is 10000
-            interval: Time interval between frames in seconds, default is 0.1
-
-        Returns:
-            None: This method displays the animation directly and returns no value
-
-        Animation Features:
-            - Circle outlines displayed as gray thin lines
-            - Radius lines displayed in steel blue
-            - Final endpoint trajectory displayed in red
-            - Animation automatically stops when trajectory approaches starting point (closed loop detection)
-            - All circles rotate simultaneously at their respective speeds
-
-        Performance Notes:
-            - This method prints debug information showing input parameters
-            - Animation automatically stops when closed loop is detected to avoid infinite loops
-
-        Example:
-            >>> epicycle = Epicycle()
-            >>> epicycle.animate_circles(
-            ...     radius=[2.0, 2.0, 1.0],
-            ...     theta=[0.0, np.pi/4, np.pi/2],
-            ...     speed=[0.01, 0.02, 0.03],
-            ...     orig=0+0j,
-            ...     frames=1000
-            ... )
-            # Creates an animation of three connected circles with different speeds and radiuses
+            radius (list[float] | None): Radii for each circle. Defaults are used if None.
+            theta (list[float] | None): Initial angles per circle (radians).
+            speed (list[float] | None): Rotation speed per circle (radians/frame).
+            orig (complex): Origin for the first circle.
+            n_frames (int): Maximum number of frames.
+            interval (float): Delay between frames (ms).
+            gif_name (str): Filename to save GIF when running in Jupyter.
         """
         radius = radius or [2.0, 2.0, 1.0]
         theta = theta or [0.0, np.pi/4, np.pi/2]
@@ -382,6 +280,14 @@ class Epicycle:
 
     @staticmethod
     def _generate_polygon_points(n_polygon_points: int = 20) -> NDArray[np.complex128]:
+        """Generate normalized polygon points as complex numbers.
+
+        Args:
+            n_polygon_points (int): Number of polygon vertices to generate.
+
+        Returns:
+            NDArray[np.complex128]: Array of complex polygon points (closed, normalized).
+        """
         x = np.random.randint(-10, 10, n_polygon_points)
         y = np.random.randint(-10, 10, n_polygon_points)
         z = x + 1j * y
@@ -400,6 +306,15 @@ class Epicycle:
         points: NDArray[np.complex128],
         n_sample_points: int = 50,
     ) -> NDArray[np.complex128]:
+        """Linearly resample polygon points along the polygon perimeter.
+
+        Args:
+            points (NDArray): Complex polygon points (closed).
+            n_sample_points (int): Number of output sample points.
+
+        Returns:
+            NDArray[np.complex128]: Resampled complex points.
+        """
         diffs = np.diff(points)
         dists = np.abs(diffs)
         cum_dists = np.concatenate(([0], np.cumsum(dists)))
@@ -420,11 +335,19 @@ class Epicycle:
         list[float],
         list[float],
     ]:
+        """Compute FFT modes and return reconstruction and parameters.
+
+        Args:
+            sample_points (NDArray): Complex-valued samples.
+            n_fft_points (int): Number of FFT modes to retain.
+
+        Returns:
+            tuple: (fft_points: NDArray, radius: list, theta: list, speed: list)
+        """
         n_sample_points = len(sample_points)
         freqs = np.fft.fftfreq(n_sample_points)
         fft_values = np.fft.fft(sample_points) / n_sample_points
         idx = np.argsort(np.abs(fft_values))[::-1]
-
         freqs = freqs[idx]
         fft_values = fft_values[idx]
 
@@ -449,6 +372,16 @@ class Epicycle:
         interval: float = 20,
         gif_name: str = 'polygon_animation.gif',
     ):
+        """Animate epicycle reconstruction of a random polygon via FFT modes.
+
+        Args:
+            n_polygon_points (int): Number of polygon vertices.
+            n_sample_points (int): Resampled points along polygon.
+            n_fft_points (int): Number of FFT modes to keep.
+            n_frames (int): Maximum frames for the animation.
+            interval (float): Delay between frames (ms).
+            gif_name (str): GIF filename used when saving in Jupyter.
+        """
         polygon_points = cls._generate_polygon_points(n_polygon_points)
         sample_points = cls._resample_polygon_points(polygon_points, n_sample_points=n_sample_points)
         fft_points, radius, theta, speed = cls._fft_sample_points(sample_points, n_fft_points=n_fft_points)
@@ -563,6 +496,16 @@ class Epicycle:
         wave_n_points: int = 1000,
         gif_name: str = 'discomposite_animation.gif',
     ):
+        """Animate per-mode x/y wave decomposition from FFT components.
+
+        Args:
+            n_polygon_points (int): Number of vertices in the random polygon.
+            n_sample_points (int): Resampled points for FFT.
+            n_fft_points (int): Number of FFT modes to use.
+            interval (float): Delay between frames (ms).
+            wave_n_points (int): Number of points to plot per wave.
+            gif_name (str): GIF filename when saving in Jupyter.
+        """
         polygon_points = cls._generate_polygon_points(n_polygon_points)
         sample_points = cls._resample_polygon_points(polygon_points, n_sample_points=n_sample_points)
         fft_points, radius, theta, speed = cls._fft_sample_points(sample_points, n_fft_points=n_fft_points)
