@@ -599,8 +599,8 @@ class Epicycle:
         def update(frame):
             line_xs[frame].set_data(range(wave_n_points), xs[frame])
             line_ys[frame].set_data(range(wave_n_points), ys[frame])
-            line_x_sum.set_data(range(wave_n_points), np.sum(np.asarray(xs[:frame+1]), axis=0))
-            line_y_sum.set_data(range(wave_n_points), np.sum(np.asarray(ys[:frame+1]), axis=0))
+            line_x_sum.set_data(range(wave_n_points), np.sum(np.asarray(xs[: frame + 1]), axis=0))
+            line_y_sum.set_data(range(wave_n_points), np.sum(np.asarray(ys[: frame + 1]), axis=0))
             return line_xs + line_ys + [line_x_sum, line_y_sum]
 
         ani = FuncAnimation(
@@ -609,7 +609,8 @@ class Epicycle:
             frames=len(theta),
             init_func=init_func,
             interval=interval,
-            blit=True
+            blit=True,
+            repeat=False,
         )
         plt.tight_layout()
         if cls.is_jupyter():
